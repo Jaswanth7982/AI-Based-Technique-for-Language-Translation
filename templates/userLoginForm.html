@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen AI Real Time Translation Tool</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts: Georgia -->
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <!-- GSAP for Advanced Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a2a44; /* Navy Blue */
+            --secondary-color: #d4a017; /* Gold */
+            --accent-color: #4a4a4a; /* Soft Gray */
+            --text-color: #333333; /* Dark Gray */
+            --bg-color: #f5f0e1; /* Ivory */
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Georgia', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* AI Image Styling */
+        .ai-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--secondary-color);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .ai-image:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-color);
+        }
+
+        /* Translate Icon Styling */
+        .translate-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 8px;
+            vertical-align: middle;
+            transition: transform 0.3s ease;
+        }
+
+        .translate-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* 3D Animation Container */
+        .threejs-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        /* Animations */
+        @keyframes subtleGlow {
+            0%, 100% { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+            50% { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: var(--primary-color);
+            box-shadow: var(--shadow);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 12px 0;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar.hidden {
+            transform: translateY(-100%);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.8em;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            color: #f0c05a;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-btn {
+            color: var(--secondary-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 1em;
+            font-weight: normal;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            color: #f0c05a;
+        }
+
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-btn:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu.active {
+            display: flex;
+            flex-direction: column;
+            background: var(--primary-color);
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: var(--secondary-color);
+            padding: 6px;
+        }
+
+        /* Main Content (Login Form) */
+        .main-content {
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 25px;
+            background: #fffef2;
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .main-content:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-content h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .main-content p {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out 0.5s forwards;
+        }
+
+        section h2 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .login-form div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-form label {
+            color: var(--text-color);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+
+        .login-form input {
+            padding: 8px 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background: #ffffff;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-family: 'Georgia', serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .login-form button {
+            margin-top: 8px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            font-weight: normal;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .login-form button:hover {
+            background: #2a3a64;
+            transform: translateY(-1px);
+        }
+
+        /* Django Messages Styling */
+        ul.messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 12px;
+        }
+
+        ul.messages li {
+            color: var(--primary-color);
+            background: #f5f0e1;
+            padding: 6px;
+            margin-bottom: 5px;
+            border-left: 2px solid var(--secondary-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 60px 20px;
+            background: var(--bg-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: #fffef2;
+            border: 1px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-image {
+            width: 100%;
+            height: 140px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.6em;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 1em;
+            color: var(--text-color);
+        }
+
+        /* Footer */
+        .footer-gradient {
+            background: var(--primary-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .footer-container p {
+            margin: 0;
+            font-size: 0.85em;
+            color: var(--secondary-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .main-content h1 {
+                font-size: 1.8rem;
+            }
+
+            .main-content p {
+                font-size: 0.85rem;
+            }
+
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-image {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Animation Container -->
+    <div class="threejs-container" id="threejs-scene"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <svg class="translate-icon" viewBox="0 0 32 32">
+                    <path fill="#d4a017" d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 26C9.4 28 4 22.6 4 16S9.4 4 16 4s12 5.4 12 12-5.4 12-12 12zm6-18h-4v2h4v2h-6v2h6v2h-4v2h4v2h-6v2h6c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm-8 10H8v-2h6v-2H8v-2h4v-2H8v-2h6c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/>
+                </svg>
+               AI Based Technique for Language Translation
+            </a>
+            <div class="menu-toggle" id="mobileMenu">☰</div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/" class="nav-btn"><i class="fas fa-home mr-1"></i>Home</a>
+                <a href="userLoginForm" class="nav-btn"><i class="fas fa-user mr-1"></i>User</a>
+                <a href="adminLoginForm" class="nav-btn"><i class="fas fa-user-shield mr-1"></i>Admin</a>
+                <a href="userRegisterForm" class="nav-btn"><i class="fas fa-user-plus mr-1"></i>Register</a>
+            </div>
+        </div>
+    </nav>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <!-- Main Content (Login Form) -->
+    <main class="main-content">
+        <h1>User Login</h1>
+        <p>Access your account to view your profile and updates.</p>
+        <ul class="messages">
+            {% if messages %}
+            <ul class="messages" style="list-style: none; padding: 0;">
+                {% for message in messages %}
+                <li style="margin: 10px 0; padding: 12px; border-radius: 5px; 
+                       color: #1a2a44; 
+                       background-color: #f5f0e1;">
+                    {{ message }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </ul>
+        <section>
+            <h2><i class="fas fa-user"></i> User Sign In</h2>
+            <form class="login-form" method="post" action="userLoginCheck">
+                {% csrf_token %}
+                <div>
+                    <label for="userUsername">Username</label>
+                    <input type="text" id="userUsername" name="userUsername" placeholder="Enter your username" required>
+                </div>
+                <div>
+                    <label for="userPassword">Password</label>
+                    <input type="password" id="userPassword" name="userPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit">User Login</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Features Section with AI-Generated Images -->
+    <section class="features-section">
+        <div class="features-container">
+            <div class="feature-card">
+                <h3>Global Language Reach</h3>
+                <p>Translate across 100+ languages with cutting-edge AI precision.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Intelligent Chatbot</h3>
+                <p>Converse naturally with our AI for context-aware translations.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Seamless Performance</h3>
+                <p>Instant translations with zero lag, powered by advanced AI.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-gradient">
+        <div class="footer-container">
+            <p>© 2025 GenAITranslation. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navMenu = document.getElementById('navMenu');
+        mobileMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+
+        // Navbar Scroll Hide/Show
+        let lastScroll = 0;
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.scrollY;
+            if (currentScroll > lastScroll && currentScroll > 150) {
+                navbar.classList.add('hidden');
+            } else {
+                navbar.classList.remove('hidden');
+            }
+            lastScroll = currentScroll;
+        });
+
+        // GSAP Animations for Features and Main Content
+        gsap.from(".main-content", {
+            duration: 1,
+            opacity: 0,
+            y: 50,
+            ease: "power2.out"
+        });
+
+        gsap.from(".feature-card", {
+            duration: 1,
+            y: 50,
+            opacity: 0,
+            stagger: 0.2,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".features-section",
+                start: "top 80%"
+            }
+        });
+
+        // Three.js Animation with Subtle Effects
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('threejs-scene').appendChild(renderer.domElement);
+
+        // Holographic Ground
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundMaterial = new THREE.MeshStandardMaterial({
+            color: 0x4a4a4a,
+            roughness: 0.8,
+            metalness: 0.2,
+            transparent: true,
+            opacity: 0.4
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -4;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Holographic Globe
+        const globeGeometry = new THREE.SphereGeometry(1.5, 64, 64);
+        const globeMaterial = new THREE.MeshStandardMaterial({
+            color: 0xd4a017,
+            roughness: 0.6,
+            metalness: 0.3,
+            transparent: true,
+            opacity: 0.8
+        });
+        const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+        globe.position.set(0, 2.5, -6);
+        globe.castShadow = true;
+        scene.add(globe);
+
+        // Translate Icon (Torus Knot)
+        const translateIconGeometry = new THREE.TorusKnotGeometry(0.8, 0.2, 100, 16);
+        const translateIconMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a2a44,
+            roughness: 0.7,
+            metalness: 0.4
+        });
+        const translateIcon = new THREE.Mesh(translateIconGeometry, translateIconMaterial);
+        translateIcon.position.set(-5, 3, -6);
+        translateIcon.castShadow = true;
+        scene.add(translateIcon);
+
+        // Chatbot Node (Icosahedron)
+        const chatbotGeometry = new THREE.IcosahedronGeometry(1, 1);
+        const chatbotMaterial = new THREE.MeshStandardMaterial({
+            color: 0x4a4a4a,
+            roughness: 0.7,
+            metalness: 0.3
+        });
+        const chatbot = new THREE.Mesh(chatbotGeometry, chatbotMaterial);
+        chatbot.position.set(5, 2.8, -6);
+        chatbot.castShadow = true;
+        scene.add(chatbot);
+
+        // Lighting with Subtle Effects
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.2);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(20, 20, 20);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xd4a017, 1.5, 50);
+        pointLight.position.set(-10, 10, -10);
+        scene.add(pointLight);
+
+        const spotlight = new THREE.SpotLight(0x1a2a44, 1.5, 50, Math.PI / 6, 0.3);
+        spotlight.position.set(0, 15, 10);
+        spotlight.castShadow = true;
+        spotlight.shadow.mapSize.width = 2048;
+        spotlight.shadow.mapSize.height = 2048;
+        scene.add(spotlight);
+
+        camera.position.set(0, 8, 25);
+
+        // Animation Loop with Subtle Effects
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.02;
+
+            // Subtle Animations
+            globe.rotation.y += 0.01;
+            globe.position.y = 2.5 + Math.sin(time) * 0.4;
+
+            translateIcon.rotation.x += 0.015;
+            translateIcon.rotation.y += 0.015;
+            translateIcon.position.y = 3 + Math.cos(time) * 0.5;
+
+            chatbot.rotation.y += 0.01;
+            chatbot.position.y = 2.8 + Math.sin(time + 2) * 0.35;
+
+            // Subtle Spotlight
+            spotlight.position.x = 10 * Math.sin(time * 0.5);
+            spotlight.position.z = 10 * Math.cos(time * 0.5);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
