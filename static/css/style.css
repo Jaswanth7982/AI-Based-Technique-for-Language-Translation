@@ -1,0 +1,124 @@
+   * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, rgb(42, 94, 111), rgb(244, 63, 63));
+    color: #FFF;
+    font-family: 'Roboto', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ============================= */
+/* ===== OUTPUT BOX FIX ======== */
+/* ============================= */
+
+input,
+textarea {
+    width: 100%;
+    min-height: 50px;
+    background-color: #28131a6e !important;
+    color: #000000 !important;
+    border: 2px solid #27AE60;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    outline: none;
+}
+
+textarea {
+    resize: none;
+}
+
+/* Selection color */
+textarea::selection,
+input::selection {
+    background: #27AE60;
+    color: #ffffff;
+}
+
+/* ============================= */
+/* ===== BUTTON STYLING ======== */
+/* ============================= */
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #2E7D32;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+button:hover {
+    background: #1B5E20;
+}
+
+/* ============================= */
+/* ===== CONTAINER CARD ======== */
+/* ============================= */
+
+.container {
+    background: #f3e6c8;
+    max-width: 700px;
+    margin: 120px auto;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: black;
+}
+
+/* ============================= */
+/* ===== HEADINGS ============== */
+/* ============================= */
+
+h2, h3 {
+    color: #2E7D32;
+    margin-bottom: 10px;
+}
+
+/* ============================= */
+/* ===== FILE INPUT FIX ======== */
+/* ============================= */
+
+input[type="file"] {
+    background: #ffffff;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+/* ============================= */
+/* ===== GO BACK BUTTON ======== */
+/* ============================= */
+
+.go-back {
+    width: auto;
+    padding: 10px 20px;
+    background: #2E7D32;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.go-back:hover {
+    background: #1B5E20;
+}
+
+/* ============================= */
+/* ===== RESPONSIVE DESIGN ===== */
+/* ============================= */
+
+@media (max-width: 768px) {
+    .container {
+        margin: 80px 20px;
+        padding: 20px;
+    }
+}
